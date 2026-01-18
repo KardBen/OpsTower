@@ -1,0 +1,7 @@
+- name: Deploy OpsTower Infrastructure
+  hosts: servers
+  become: true
+  gather_facts: true
+
+  roles:
+    - docker_debian
