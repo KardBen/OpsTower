@@ -1,0 +1,17 @@
+setup_komodo_compose_mongo_image_tag: latest
+setup_komodo_db_username: kuser
+setup_komodo_timezone: Europe/Amsterdam
+setup_komodo_host: https://demo.komo.do
+setup_komodo_title: Komodo
+setup_komodo_first_server: https://periphery:8120
+setup_komodo_first_server_name: Local
+setup_komodo_init_admin_username: admin
+
+# directory vars
+setup_komodo_root_directory: /opt/komodo
+setup_komodo_periphery_root_directory: "{{ setup_komodo_root_directory }}"
+setup_komodo_mongo_data_directory: /opt/komodo/mongo/data
+setup_komodo_mongo_config_directory: /opt/komodo/mongo/config
+setup_komodo_backup_path: /opt/komodo/backups
+setup_komodo_docker_compose_file_dest: /opt/komodo/docker-compose.yaml
+setup_komodo_env_file_dest: /opt/komodo/compose.env

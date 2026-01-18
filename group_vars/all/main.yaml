@@ -1,0 +1,5 @@
+# for ARM devices below ARMv8.2-A, the mongo version tag has to be 4.4.18 max.
+# tested on Raspberry Pi 4B
+# uncomment the following var to take effect
+
+# setup_komodo_compose_mongo_image_tag: 4.4.18

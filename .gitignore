@@ -3,3 +3,4 @@
 /.ansible
 .ansible/
 vaultpassword
+secrets.yaml

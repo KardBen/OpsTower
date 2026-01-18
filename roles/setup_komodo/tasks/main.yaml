@@ -1,0 +1,100 @@
+# Setup Komodo with MongoDB backend
+###############################################################################################
+
+# Make sure that all directories are present
+- name: Create directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ setup_komodo_periphery_root_directory }}"
+    - "{{ setup_komodo_mongo_data_directory }}"
+    - "{{ setup_komodo_mongo_config_directory }}"
+    - "{{ setup_komodo_backup_path }}"
+
+# Generate secrets
+- name: Generate Komodo secrets file
+  become: false
+  delegate_to: localhost
+  ansible.builtin.copy:
+    dest: "secrets.yaml"
+    force: false
+    mode: '0600'
+    content: |
+      # Generated Secrets for Komodo Service
+      setup_komodo_db_password: "{{ lookup('password', '/dev/null length=24 chars=ascii_letters,digits') }}"
+      setup_komodo_passkey: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+      setup_komodo_webhook_secret: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+      setup_komodo_jwt_secret: "{{ lookup('password', '/dev/null length=64 chars=ascii_letters,digits') }}"
+      setup_komodo_init_admin_password: "{{ lookup('password', '/dev/null length=20 chars=ascii_letters,digits') }}"
+
+- name: Load the secrets into the playbook session
+  ansible.builtin.include_vars:
+    file: "secrets.yaml"
+###############################################################################################
+
+# Render templates
+- name: Template docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ setup_komodo_docker_compose_file_dest }}"
+    mode: '0644'
+
+- name: Template compose.env
+  ansible.builtin.template:
+    src: compose.env.j2
+    dest: "{{ setup_komodo_env_file_dest }}"
+    mode: '0644'
+###############################################################################################
+
+# Docker compose
+- name: Docker compose up
+  community.docker.docker_compose_v2:
+    project_name: komodo
+    project_src: "{{ setup_komodo_root_directory }}"
+    env_files:
+      - "{{ setup_komodo_env_file_dest }}"
+  register: setup_komodo_compose_output
+
+- name: Show docker compose output
+  ansible.builtin.debug:
+    msg: "{{ setup_komodo_compose_output }}"
+
+- name: Verify that services are running
+  ansible.builtin.assert:
+    that:
+      - core_container.State == 'running'
+      - mongo_container.State == 'running'
+      - periphery_container.State == 'running'
+  vars:
+    core_container: >-
+      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "core") | first }}
+    mongo_container: >-
+      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "mongo") | first }}
+    periphery_container: >-
+      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "periphery") | first }}
+###############################################################################################
+
+# Summary - console output
+- name: 🚀 Komodo Deployment Summary
+  delegate_to: localhost
+  become: false
+  run_once: true
+  ansible.builtin.debug:
+    msg:
+      - "------------------------------------------------"
+      - "✅ KOMODO SETUP COMPLETE"
+      - "------------------------------------------------"
+      - "WebUI URL:      http://{{ hostvars[inventory_hostname]['ansible_host'] | default(inventory_hostname) }}:9120"
+      - "Username:       {{ setup_komodo_init_admin_username }}"
+      - "Password:       {{ setup_komodo_init_admin_password }}"
+      - "------------------------------------------------"
+      - "DATABASE & SECURITY"
+      - "DB Password:    {{ setup_komodo_db_password }}"
+      - "JWT Secret:     {{ setup_komodo_jwt_secret }}"
+      - "Passkey:        {{ setup_komodo_passkey }}"
+      - "Webhook Sec:    {{ setup_komodo_webhook_secret }}"
+      - "------------------------------------------------"
+      - "CONFIG FILE:    {{ playbook_dir }}/secrets.yaml"
+      - "------------------------------------------------"
