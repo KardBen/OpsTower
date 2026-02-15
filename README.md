@@ -30,7 +30,7 @@ These secrets are generated using alphanumeric characters to prevent escaping is
 ## 📦 Installation & Deployment
 
 ### Prerequisites
-- A server running a Debian-based OS.
+- A server running a Debian-based OS. (!! ATTENTION: You will need a CPU with AVX support in order for mongodb to function !!)
 - Ansible installed on your control machine.
 - Docker and the `community.docker` Ansible collection.
 

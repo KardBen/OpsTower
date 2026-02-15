@@ -60,20 +60,6 @@
 - name: Show docker compose output
   ansible.builtin.debug:
     msg: "{{ setup_komodo_compose_output }}"
-
-- name: Verify that services are running
-  ansible.builtin.assert:
-    that:
-      - core_container.State == 'running'
-      - mongo_container.State == 'running'
-      - periphery_container.State == 'running'
-  vars:
-    core_container: >-
-      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "core") | first }}
-    mongo_container: >-
-      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "mongo") | first }}
-    periphery_container: >-
-      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "periphery") | first }}
 ###############################################################################################
 
 # Summary - console output
@@ -98,3 +84,17 @@
       - "------------------------------------------------"
       - "CONFIG FILE:    {{ playbook_dir }}/secrets.yaml"
       - "------------------------------------------------"
+
+- name: Verify that services are running
+  ansible.builtin.assert:
+    that:
+      - core_container.State == 'running'
+      - mongo_container.State == 'running'
+      - periphery_container.State == 'running'
+  vars:
+    core_container: >-
+      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "core") | first }}
+    mongo_container: >-
+      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "mongo") | first }}
+    periphery_container: >-
+      {{ setup_komodo_compose_output.containers | selectattr("Service", "equalto", "periphery") | first }}
